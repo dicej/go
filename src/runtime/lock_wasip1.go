@@ -105,8 +105,18 @@ func notetsleepg(n *note, ns int64) bool {
 	}
 }
 
+var onIdle func() bool = nil
+
+func WasiOnIdle(callback func() bool) {
+	onIdle = callback
+}
+
 func beforeIdle(int64, int64) (*g, bool) {
-	return nil, false
+	if onIdle == nil {
+		return nil, false
+	} else {
+		return nil, onIdle()
+	}
 }
 
 func checkTimeouts() {}
