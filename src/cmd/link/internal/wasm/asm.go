@@ -445,6 +445,17 @@ func writeExportSec(ctxt *ld.Link, ldr *loader.Loader, lenHostImports int) {
 		writeName(ctxt.Out, "memory") // memory in wasi
 		ctxt.Out.WriteByte(0x02)      // mem export
 		writeUleb128(ctxt.Out, 0)     // memidx
+	case "wasip3":
+		writeUleb128(ctxt.Out, uint64(1+len(ldr.WasmExports))) // number of exports
+		for _, s := range ldr.WasmExports {
+			idx := uint32(lenHostImports) + uint32(ldr.SymValue(s)>>16) - funcValueOffset
+			writeName(ctxt.Out, ldr.SymName(s))
+			ctxt.Out.WriteByte(0x00)            // func export
+			writeUleb128(ctxt.Out, uint64(idx)) // funcidx
+		}
+		writeName(ctxt.Out, "memory") // memory in wasi
+		ctxt.Out.WriteByte(0x02)      // mem export
+		writeUleb128(ctxt.Out, 0)     // memidx
 	case "js":
 		writeUleb128(ctxt.Out, uint64(4+len(ldr.WasmExports))) // number of exports
 		for _, name := range []string{"run", "resume", "getsp"} {
